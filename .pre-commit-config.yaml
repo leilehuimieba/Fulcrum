@@ -15,3 +15,17 @@ repos:
         language: system
         pass_filenames: false
         files: ^src/fulcrum/.*\.py$
+
+      - id: openapi-contract
+        name: OpenAPI contract drift
+        entry: uv run python -m fulcrum.openapi --check
+        language: system
+        pass_filenames: false
+        files: ^(?:src/fulcrum/.*\.py|docs/api/openapi\.json|pyproject\.toml)$
+
+      - id: markdown-local-links
+        name: Markdown local links
+        entry: uv run python scripts/check_markdown_links.py
+        language: system
+        pass_filenames: false
+        files: ^(?:[^/]+\.md|docs/.*\.md)$

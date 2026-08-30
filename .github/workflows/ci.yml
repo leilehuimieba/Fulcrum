@@ -5,9 +5,13 @@ on:
     branches: [main, dev]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -20,11 +24,17 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra dev
 
+      - name: OpenAPI contract drift
+        run: uv run python -m fulcrum.openapi --check
+
+      - name: Markdown local links
+        run: uv run python scripts/check_markdown_links.py
+
       - name: Ruff lint
-        run: uv run ruff check src tests
+        run: uv run ruff check src tests scripts/check_markdown_links.py
 
       - name: Ruff format check
-        run: uv run ruff format --check src tests
+        run: uv run ruff format --check src tests scripts/check_markdown_links.py
 
       - name: Pyright type check
         run: uv run pyright

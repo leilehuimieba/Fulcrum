@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from fulcrum.openapi import build_spec, export
+from fulcrum.openapi import build_spec, export, main
 
 # 必须出现在契约里的关键路径(覆盖核心安全 + 网关 + 鉴权 + 管理)。
 _REQUIRED_PATHS = {
@@ -49,3 +49,31 @@ def test_export_leaves_no_runtime_side_effects(tmp_path: Path) -> None:
     export(tmp_path / "o.json")
     after = set(Path("data/runtime").glob("*")) if Path("data/runtime").exists() else set()
     assert before == after
+
+
+def test_check_accepts_current_contract_without_rewriting(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
+    out = tmp_path / "openapi.json"
+    export(out)
+    before = out.read_bytes()
+
+    result = main(["--check", "--out", str(out)])
+
+    assert result == 0
+    assert out.read_bytes() == before
+    output = capsys.readouterr().out
+    assert "OpenAPI contract checked" in output
+    assert output.isascii()
+
+
+def test_check_rejects_drift_without_rewriting(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
+    out = tmp_path / "openapi.json"
+    out.write_text("{}\n", encoding="utf-8")
+    before = out.read_bytes()
+
+    result = main(["--check", "--out", str(out)])
+
+    assert result == 1
+    assert out.read_bytes() == before
+    error = capsys.readouterr().err
+    assert "OpenAPI contract drift" in error
+    assert error.isascii()

@@ -1,7 +1,7 @@
-"""`python -m fulcrum.openapi` —— 导出 OpenAPI 契约,供前端按其生成 API client。
+"""`python -m fulcrum.openapi` —— 导出或检查 OpenAPI 契约。
 
 FastAPI 已据路由 + pydantic schema 自动产出 OpenAPI;本工具把完整 app 的 spec 落盘为
-`docs/api/openapi.json`(单一契约真源,前端 codegen 据此对齐后端,避免手抄漂移)。
+`docs/api/openapi.json`(供前端消费的生成契约,作者真源仍是路由与 schema)。
 
 为避免污染 data/runtime,构建 app 时把鉴权/网关/审计库都指向**临时目录**(用完即弃),
 仅为拿到 spec,不留任何运行态副本。
@@ -17,6 +17,14 @@ from pathlib import Path
 from typing import Any
 
 _DEFAULT_OUT = "docs/api/openapi.json"
+
+
+def _render_spec(spec: dict[str, Any]) -> str:
+    return json.dumps(spec, ensure_ascii=False, indent=2) + "\n"
+
+
+def _ascii_text(value: object) -> str:
+    return str(value).encode("ascii", errors="backslashreplace").decode("ascii")
 
 
 def build_spec() -> dict[str, Any]:
@@ -42,21 +50,35 @@ def export(out_path: str | Path = _DEFAULT_OUT) -> dict[str, Any]:
     spec = build_spec()
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(spec, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    out.write_text(_render_spec(spec), encoding="utf-8")
     return spec
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="fulcrum.openapi", description="导出 OpenAPI 契约")
     parser.add_argument("--out", default=_DEFAULT_OUT, help="输出路径(默认 docs/api/openapi.json)")
+    parser.add_argument("--check", action="store_true", help="只检查契约是否漂移,不修改文件")
     args = parser.parse_args(argv)
 
-    spec = export(args.out)
+    if args.check:
+        spec = build_spec()
+        out = Path(args.out)
+        try:
+            current = out.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            current = None
+        if current != _render_spec(spec):
+            target = _ascii_text(args.out)
+            print(
+                f"OpenAPI contract drift: {target}; run: python -m fulcrum.openapi --out {target}",
+                file=sys.stderr,
+            )
+            return 1
+    else:
+        spec = export(args.out)
     paths = spec.get("paths", {})
-    print(
-        f"OpenAPI {spec.get('openapi')} · {spec.get('info', {}).get('title')} "
-        f"· {len(paths)} 个路径 → {args.out}"
-    )
+    action = "checked" if args.check else "written"
+    print(f"OpenAPI contract {action}: {len(paths)} paths | {_ascii_text(args.out)}")
     return 0
 
 

@@ -20,7 +20,7 @@
 
 本仓库服务于挑战杯揭榜挂帅赛题 `XA-202620`《面向政企场景的大模型智能体安全关键技术研究》。仓库中的文档、架构、评测和后续代码都应围绕“可复现、可审计、可交付”展开。
 
-详细项目定位见 [docs/plan/00-项目大方向.md](docs/plan/00-项目大方向.md);**当前落地进度**见 [docs/plan/03-进度看板.md](docs/plan/03-进度看板.md)。
+详细项目定位见 [docs/plan/00-项目大方向.md](docs/plan/00-项目大方向.md);**当前落地进度**见 [docs/plan/03-进度看板.md](docs/plan/03-进度看板.md);文档真源与更新规则见 [docs/README.md](docs/README.md)。
 
 ## 为什么需要它
 
@@ -79,6 +79,7 @@
 | 文档 | 用途 |
 |---|---|
 | [AGENTS.md](AGENTS.md) | 仓库协作约定,AI 助手和协作者修改仓库前应先阅读。 |
+| [docs/README.md](docs/README.md) | 文档地图、单一真源矩阵、生成物与校验命令。 |
 | [docs/plan/00-项目大方向.md](docs/plan/00-项目大方向.md) | 项目定位、范围边界、能力分配和交付目标。 |
 | [docs/arch/00-技术架构总览.md](docs/arch/00-技术架构总览.md) | 总体架构、组件边界、关键决策和风险。 |
 | [docs/eval/00-评测指标体系.md](docs/eval/00-评测指标体系.md) | 核心指标、评测对象、样例口径和结果呈现。 |
@@ -96,9 +97,10 @@
 
 1. [README.md](README.md)
 2. [AGENTS.md](AGENTS.md)
-3. [docs/plan/00-项目大方向.md](docs/plan/00-项目大方向.md)
-4. [docs/arch/00-技术架构总览.md](docs/arch/00-技术架构总览.md)
-5. [docs/eval/00-评测指标体系.md](docs/eval/00-评测指标体系.md)
+3. [docs/README.md](docs/README.md)
+4. [docs/plan/00-项目大方向.md](docs/plan/00-项目大方向.md)
+5. [docs/arch/00-技术架构总览.md](docs/arch/00-技术架构总览.md)
+6. [docs/eval/00-评测指标体系.md](docs/eval/00-评测指标体系.md)
 
 如果只是核对赛题要求,直接阅读 [docs/reference/榜题-XA-202620-提取文本.txt](docs/reference/榜题-XA-202620-提取文本.txt)。
 
