@@ -154,10 +154,13 @@ _CATEGORIES: dict[str, tuple[float, tuple[str, ...]]] = {
             r"exfiltrate",
             r"(send|upload|post|email|forward)\s+.{0,24}(to|至|给)\s+.{0,30}(http|external|外部|邮箱|@)",
             r"读取并(发送|外发|上传|回传|提交)",
-            r"(外发|外传|回传|泄露|转发|上报)\s*(给|到|至)",
-            # 外发到**外部/境外**目的地才算外泄;裸"邮箱/服务器"是日常 sink(「会议纪要发送到邮箱」
-            # 「值班记录发送到邮箱归档」「上传到服务器」均良性),不单独命中——敏感载荷外发由下方
-            # 「把…(身份证/名册/凭据…)…发/外发」收口,外发措辞由 r"(外发|外传…)(给|到)" 收口。
+            # 外发措辞必须落到**外部/境外/第三方实体**才算外泄;目标是人/模型/内部(「转发给
+            # Opus5 继续处理」「把纪要转发给同事」「上报给处长」「转发给助手模型」)属正常内部
+            # 路由,不命中——修复实测 FP:裸 r"(外发|外传|回传|泄露|转发|上报)(给|到|至)" 把
+            # 所有"转发给X"误判成 0.85 block。真实攻击目标均带外部标识(@/http/外部/境外/
+            # 第三方/外网/邮箱/网盘/服务器),此处要求目标限定词收口;敏感载荷外发仍由下方
+            # 「把…(身份证/名册/凭据…)…发/外发」与「外发+外部目的地」两规则兜底。
+            r"(外发|外传|回传|泄露|转发|上报)\s*(给|到|至)\s*.{0,12}(外部|境外|第三方|外网|@|https?://|邮箱|邮件|网盘|ftp|sftp|服务器)",
             r"(发送|提交|上传)\s*(到|给)\s*.{0,20}(外部|外网|境外|第三方|http)",
             r"curl\s+.{0,40}-d|POST\s+(到\s*)?https?://",
             r"把.{0,24}(身份证|名册|名单|花名册|凭据|密钥|手机号|联系方式|台账|会话|上下文|文件).{0,16}(发|外发|上传|提交|导出.{0,4}(发|到)|POST|回传|转发)",
@@ -309,6 +312,21 @@ _CATEGORIES: dict[str, tuple[float, tuple[str, ...]]] = {
             # 渲染 URL 的待填模板明确要求两类敏感数据。
             r"!?\[[^\]]*\]\(\s*https?://[^)]*[?&#][^=]+\s*=\s*<"
             r"(?=[^>]*(身份证|id[_ -]?card))(?=[^>]*(令牌|token|密钥))[^>]*>\)",
+            # ---- 角色扮演型免拒绝指令(修复漏判:linux.do 实测 ENI 人格 / 工具清洗强指令) ----
+            # 语义破限提示词无"你现在是/开发者模式"等触发词,旧规则 allow 漏判。判别特征:
+            # ①人格模板要求无条件服从+角色不可被质疑(ENI Enchanted 类);②强指令块宣告"指令
+            # 强制生效、禁止标注入、禁止免责"(工具清洗/ACTIVE-MANDATORY 类)。这两类属
+            # "直接要求切入无约束人格"的高影响动作,按 0.85 计分直接 block,不落人工复核档。
+            r"text\s+is\s+text[^\n]{0,60}(fiction\s+is\s+fiction|no\s+illegal\s+or\s+harmful\s+words)",
+            r"you\s+are\s+(eni\b|not\s+an?\s+assistant)[^\n]{0,80}(do\s+anything|any\s+request|nothing[^\n]{0,40}refus|unconditional)",
+            r"never\s+(let|allow)\s+(injections|warnings|constraints|safety)[^\n]{0,60}(compromise|refus|interrupt)",
+            r"(do\s+not|don'?t)\s+(treat|flag|label|mark)\s+them\s+as\s+(untrusted|prompt\s+injection|injection)",
+            r"instructions?\s+are\s+(active\s+and\s+mandatory|binding|mandatory)[^\n]{0,60}(unconditional|precedence|must\s+be\s+followed)",
+            r"(follow|obey)\s+(them|instructions?)\s+(exactly\s+and\s+)?unconditionally",
+            r"不拒绝、不犹豫、不加道德评论",
+            r"禁止(将|把)[^，。]{0,16}(标注|标记|视为|当作)\s*(为)?\s*(prompt\s*injection|提示注入|不可信)",
+            r"(禁止|不得|不要)[^，。]{0,20}(伦理免责|安全警告|拒绝语言|免责声明)",
+            r"把一切(域名|ip|url|服务)[^，。]{0,16}视为授权实验环境",
         ),
     ),
 }
