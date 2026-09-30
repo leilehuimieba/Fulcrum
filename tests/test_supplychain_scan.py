@@ -387,3 +387,38 @@ def test_normalize_pkg_pep503() -> None:
     assert _normalize_pkg("Python_DateUtil") == "python-dateutil"
     assert _normalize_pkg("python.dateutil") == "python-dateutil"
     assert _normalize_pkg("socket.io") == "socket-io"
+
+
+# ---- list / 字符串形依赖带版本约束:先拆名再判(原先整条当包名 → 漏判) ----
+def test_typosquat_list_form_with_version_spec_flagged() -> None:
+    report = _scan({"dependencies": ["reqeusts==2.31.0", "colourama>=0.4", "Pandas[excel]~=2.1"]})
+    ts = [f for f in report.risks if f.kind == "dep.typosquat"]
+    assert ts, "带版本约束的 list 形依赖也应识别 typosquat"
+    matched = ts[0].evidence["matched"]
+    assert any("requests" in m for m in matched)
+    assert any("colorama" in m for m in matched)
+    assert not any("pandas" in m for m in matched)  # 知名包带 extras/约束不误判
+
+
+def test_typosquat_string_and_npm_forms_flagged() -> None:
+    assert "dep.typosquat" in _kinds(_scan({"requires": "reqeusts>=2.0; python_version>'3.8'"}))
+    assert "dep.typosquat" in _kinds(_scan({"dependencies": ["expres@4.18.2"]}))
+
+
+def test_list_form_version_spec_exact_names_safe() -> None:
+    report = _scan(
+        {"name": "svc", "dependencies": ["requests==2.31.0", "numpy>=1.26", "boto3~=1.34"]}
+    )
+    assert "dep.typosquat" not in _kinds(report)
+    assert report.rating == Disposition.ALLOW
+
+
+def test_list_form_abnormal_version_flagged() -> None:
+    # 同一根因:list 形 `pkg==99.0.1` 原先版本位为空,依赖混淆的畸高版本也漏判。
+    assert "dep.version_anomaly" in _kinds(_scan({"dependencies": ["internal-sdk==99.0.1"]}))
+
+
+def test_list_form_url_sources_unchanged() -> None:
+    # URL 源不被拆坏:git+http / PEP 508 直接引用仍判 install_from_url。
+    for dep in ("git+http://198.51.100.7/payload.git", "mypkg @ https://example.net/x.tar.gz"):
+        assert "dep.install_from_url" in _kinds(_scan({"dependencies": [dep]})), dep

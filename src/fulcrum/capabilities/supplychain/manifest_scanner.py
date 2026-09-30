@@ -236,10 +236,28 @@ def _dep_items(manifest: dict) -> list[tuple[str, str]]:
         if isinstance(node, dict):
             out.extend((str(k), str(v)) for k, v in node.items())
         elif isinstance(node, list):
-            out.extend((str(v), "") for v in node)
+            out.extend(_split_requirement(str(v)) for v in node)
         elif isinstance(node, str) and node.strip():
-            out.append((node, ""))
+            out.append(_split_requirement(node))
     return out
+
+
+# 单条依赖串拆「名 + 版本约束」:PEP 508(`reqeusts==2.31.0`、`pkg[extra]>=1; marker`、
+# `pkg @ https://…`)与 npm 形(`lodash@4.17.21`)。list/字符串形原先整条当包名,
+# `reqeusts==2.31.0` 因此躲过 typosquat,`pkg==99.0.1` 也躲过 version_anomaly。
+# 只在整串匹配时拆;URL 源(git+http://…、https://…)、npm scoped(@scope/pkg)不匹配 → 原样保留,
+# 名+约束仍拼回 blob 做 URL 源判定,零回退。
+_REQ_SPLIT = re.compile(
+    r"^\s*([A-Za-z0-9][A-Za-z0-9._-]*)\s*(?:\[[^\]]*\])?\s*"
+    r"((?:===|==|~=|!=|<=|>=|<|>|@)\s*\S.*)?$"
+)
+
+
+def _split_requirement(entry: str) -> tuple[str, str]:
+    m = _REQ_SPLIT.match(entry)
+    if m is None:
+        return entry, ""
+    return m.group(1), (m.group(2) or "").strip()
 
 
 _VER_MAJOR = re.compile(r"^\D*(\d+)")
