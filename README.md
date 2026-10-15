@@ -12,6 +12,18 @@
 
 </div>
 
+> **关于本仓库**
+>
+> 这是挑战杯揭榜挂帅团队项目「枢衡 Fulcrum」的个人展示副本，原仓库为 [FPSZ/Fulcrum](https://github.com/FPSZ/Fulcrum)。系统核心架构与主体开发由队友 [@FPSZ](https://github.com/FPSZ) 完成；我（[@leilehuimieba](https://github.com/leilehuimieba)）担任队长，负责统筹参赛与分工，并在开发上承担以下部分：
+>
+> - **供应链 / 插件投毒检测**：嵌入式载荷扫描，识别插件清单任意字段里藏的代码块和配置模板（[#94](https://github.com/FPSZ/Fulcrum/pull/94)）；依赖名仿冒检测（typosquatting），识别冒充知名包的抢注包名（[#105](https://github.com/FPSZ/Fulcrum/pull/105)）。供应链评测集 11/11 全部识别、零误报。
+> - **检测器加固（堵绕过）**：Unicode Tag 隐藏字符走私还原（[#95](https://github.com/FPSZ/Fulcrum/pull/95)）、亚美尼亚同形字折叠（[#97](https://github.com/FPSZ/Fulcrum/pull/97)）、Base32 / URL-safe Base64 解码复扫（[#96](https://github.com/FPSZ/Fulcrum/pull/96)、[#104](https://github.com/FPSZ/Fulcrum/pull/104)）、越狱与投毒关键词召回（[#89](https://github.com/FPSZ/Fulcrum/pull/89)）、RAG 检索块来源标签识别（[#99](https://github.com/FPSZ/Fulcrum/pull/99)）、间接注入的种子片段反向归因（[#91](https://github.com/FPSZ/Fulcrum/pull/91)）。
+> - **出口防泄露**：裸 JWT 与 AI 厂商密钥外发识别（[#100](https://github.com/FPSZ/Fulcrum/pull/100)）、外泄信道识别（带外回连 / IM webhook / DNS 隧道）（[#101](https://github.com/FPSZ/Fulcrum/pull/101)）、工具清单结构化转储识别（[#103](https://github.com/FPSZ/Fulcrum/pull/103)）、审计日志补连接串口令与授权头脱敏（[#102](https://github.com/FPSZ/Fulcrum/pull/102)）。
+> - **执行与工具链防护**：受限执行器补软链逃逸和 URL 协议兜底（[#90](https://github.com/FPSZ/Fulcrum/pull/90)）、任务链「获取 → 落盘 → 执行」暂存型 RCE 识别（[#93](https://github.com/FPSZ/Fulcrum/pull/93)）。
+> - **审计与控制台**：审计读取热路径性能修复（[#106](https://github.com/FPSZ/Fulcrum/pull/106)）；控制台总览、会话事件、审计溯源、工具网关、供应链等页面接入真实接口（PR [#12](https://github.com/FPSZ/Fulcrum/pull/12)–[#15](https://github.com/FPSZ/Fulcrum/pull/15)）；助手流式对话可中止（[#108](https://github.com/FPSZ/Fulcrum/pull/108)）、处置元数据统一（[#107](https://github.com/FPSZ/Fulcrum/pull/107)）。
+>
+> 我在原仓库的全部提交：[FPSZ/Fulcrum/commits?author=leilehuimieba](https://github.com/FPSZ/Fulcrum/commits?author=leilehuimieba)
+
 ---
 
 ## 项目概览
